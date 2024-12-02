@@ -91,34 +91,6 @@ defmodule AdventOfCode.Day02 do
   def foo([first | [second | rest]], :desc, has_skipped_one) when first > second,
     do: foo([second | rest], :desc, has_skipped_one)
 
-  # # def foo([first | [second | rest]], :asc, )
-
-  # def foo([first | [second | rest]] = line, direction, has_skipped_one) do
-  #   dbg()
-
-  #   cond do
-  #     # direction == :asc and first < second ->
-  #     #   foo([second | rest], direction, has_skipped_one)
-
-  #     direction == :asc and first >= second and not has_skipped_one ->
-  #       IO.puts("skipping #{second}")
-  #       foo([first | rest], direction, true)
-
-  #     direction == :asc and first >= second and has_skipped_one ->
-  #       false
-
-  #     direction == :desc and first > second ->
-  #       foo([second | rest], direction, has_skipped_one)
-
-  #     direction == :desc and first <= second and not has_skipped_one ->
-  #       IO.puts("skipping #{second}")
-  #       foo([first | rest], direction, true)
-
-  #     direction == :desc and first <= second and has_skipped_one ->
-  #       false
-  #   end
-  # end
-
   def get_direction(a, b) when a < b, do: :asc
   def get_direction(a, b) when a > b, do: :desc
   def get_direction(a, b) when a == b, do: :unk
