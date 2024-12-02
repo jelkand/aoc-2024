@@ -26,74 +26,15 @@ defmodule AdventOfCode.Day02 do
     (monotonic_increasing or monotonic_decreasing) and within_bounds
   end
 
-  def handle_line(line) do
-    dir = get_direction(line)
-
-    foo(line, dir, false)
-  end
-
-  def get_direction(line) do
-    {asc, desc} =
-      line
+  def can_make_safe({line, _safety}) do
+    Enum.map(0..(length(line) - 1), fn idx ->
+      List.delete_at(line, idx)
       |> compute_line()
-      |> Enum.split_with(fn x -> x > 0 end)
-      |> then(fn {asc, desc} -> {length(asc), length(desc)} end)
-
-    cond do
-      asc > desc -> :asc
-      asc < desc -> :desc
-      true -> :unk
-    end
+      |> test_line()
+    end)
+    # any true
+    |> Enum.any?(& &1)
   end
-
-  # handle complete
-
-  def foo([], _direction, _has_skipped_one), do: :safe
-
-  def foo([_only], _, _), do: :safe
-
-  def foo(_, :unk, _), do: :unsafe
-
-  # handle zero length steps
-  def foo([first | [second | _rest]], _direction, true) when first == second, do: :unsafe
-
-  def foo([first | [second | rest]], direction, false) when first == second,
-    do: foo([first | rest], direction, true)
-
-  # handle too large steps
-
-  def foo([first | [second | _rest]], :asc, true) when second - first > 3, do: :unsafe
-
-  def foo([first | [second | rest]], :asc, false) when second - first > 3,
-    do: foo([first | rest], :asc, true)
-
-  def foo([first | [second | _rest]], :desc, true) when first - second > 3, do: :unsafe
-
-  def foo([first | [second | rest]], :desc, false) when first - second > 3,
-    do: foo([first | rest], :desc, true)
-
-  # handle wrong direction steps
-
-  def foo([first | [second | _rest]], :asc, true) when second < first, do: :unsafe
-
-  def foo([first | [second | rest]], :asc, false) when second < first,
-    do: foo([first | rest], :asc, true)
-
-  def foo([first | [second | _rest]], :desc, true) when first < second, do: :unsafe
-
-  def foo([first | [second | rest]], :desc, false) when first < second,
-    do: foo([first | rest], :desc, true)
-
-  # normal, proceed
-  def foo([first | [second | rest]], :asc, has_skipped_one) when first < second,
-    do: foo([second | rest], :asc, has_skipped_one)
-
-  def foo([first | [second | rest]], :desc, has_skipped_one) when first > second,
-    do: foo([second | rest], :desc, has_skipped_one)
-
-  def get_direction(a, b) when a < b, do: :asc
-  def get_direction(a, b) when a > b, do: :desc
-  def get_direction(a, b) when a == b, do: :unk
 
   def part1(args) do
     args
@@ -104,12 +45,14 @@ defmodule AdventOfCode.Day02 do
   end
 
   def part2(args) do
-    args
-    |> parse_input()
-    # |> Enum.at(1)
-    # |> then(fn x -> [x] end)
-    |> Enum.map(&handle_line/1)
-    |> Enum.count(fn safety -> safety == :safe end)
-    |> dbg()
+    {safe, unsafe} =
+      args
+      |> parse_input()
+      |> Enum.map(fn line -> {line, compute_line(line) |> test_line} end)
+      |> Enum.split_with(fn {_line, safe} -> safe end)
+
+    can_make_safe = unsafe |> Enum.map(&can_make_safe/1) |> Enum.filter(& &1)
+
+    length(safe) + length(can_make_safe)
   end
 end
