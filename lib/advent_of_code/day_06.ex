@@ -34,24 +34,13 @@ defmodule AdventOfCode.Day06 do
     end
   end
 
-  def solve({obstacles, start, size}) do
-    solve_internal(start, [], obstacles, size, :up)
+  def traverse({obstacles, start, size}) do
+    check_cycle(start, MapSet.new(), obstacles, size, :up)
   end
 
-  def solve_internal({row, col}, visited, _obstacles, size, _dir)
-      when row < 0 or row >= size or col < 0 or col >= size,
-      do: visited
-
-  def solve_internal(pos, visited, obstacles, size, dir) do
-    {next_pos, next_dir} =
-      get_next_pos_and_dir(pos, dir, obstacles)
-
-    solve_internal(next_pos, [pos | visited], obstacles, size, next_dir)
-  end
-
-  def check_cycle({row, col}, _visited, _obstacles, size, _dir)
+  def check_cycle({row, col}, visited, _obstacles, size, _dir)
       when row < 0 or row >= size or col < 0 or col >= size do
-    false
+    visited
   end
 
   def check_cycle(pos, visited, obstacles, size, dir) do
@@ -60,12 +49,12 @@ defmodule AdventOfCode.Day06 do
 
     case MapSet.member?(visited, {next_pos, next_dir}) do
       true ->
-        true
+        :cycle
 
       false ->
         check_cycle(
           next_pos,
-          MapSet.put(visited, {next_pos, next_dir}),
+          MapSet.put(visited, {pos, dir}),
           obstacles,
           size,
           next_dir
@@ -93,7 +82,11 @@ defmodule AdventOfCode.Day06 do
 
   def part1(args) do
     parse_input(args)
-    |> solve()
+    |> traverse()
+    |> case do
+      :cycle -> []
+      visited -> Enum.map(visited, &elem(&1, 0))
+    end
     |> MapSet.new()
     |> MapSet.size()
   end
@@ -103,16 +96,22 @@ defmodule AdventOfCode.Day06 do
       inputs =
       parse_input(args)
 
-    solve(inputs)
+    traverse(inputs)
     |> Enum.reverse()
     |> tl()
     |> Enum.uniq()
-    |> Enum.map(fn obstacle ->
+    |> Enum.map(fn {obstacle, _dir} ->
       Task.async(fn ->
-        check_cycle(robot_start, MapSet.new(), MapSet.put(obstacles, obstacle), max_size, :up)
+        traverse({MapSet.put(obstacles, obstacle), robot_start, max_size})
+        |> case do
+          :cycle -> {obstacle, :cycle}
+          _ -> {obstacle, :no_cycle}
+        end
       end)
     end)
     |> Task.await_many(:infinity)
+    |> Enum.uniq()
+    |> Enum.filter(&(elem(&1, 1) == :cycle))
     |> length()
   end
 end
