@@ -15,7 +15,6 @@ defmodule AdventOfCode.Day06 do
     robot_start =
       Enum.find(point_map, fn {_, symbol} -> symbol == "^" end)
       |> elem(0)
-      |> IO.inspect(label: "robot start")
 
     obstacles =
       Enum.filter(point_map, fn {_, symbol} -> symbol == "#" end)
@@ -30,13 +29,13 @@ defmodule AdventOfCode.Day06 do
     potential_next_dir = get_next_dir(dir)
 
     case MapSet.member?(obstacles, potential_next_pos) do
-      true -> {get_next_pos(pos, potential_next_dir), potential_next_dir}
+      true -> {pos, potential_next_dir}
       false -> {potential_next_pos, dir}
     end
   end
 
   def solve_1({obstacles, start, size}) do
-    solve_1_internal(start, MapSet.new(), obstacles, size, :up)
+    solve_1_internal(start, [], obstacles, size, :up)
   end
 
   def solve_1_internal({row, col}, visited, _obstacles, size, _dir)
@@ -47,7 +46,7 @@ defmodule AdventOfCode.Day06 do
     {next_pos, next_dir} =
       get_next_pos_and_dir(pos, dir, obstacles)
 
-    solve_1_internal(next_pos, MapSet.put(visited, pos), obstacles, size, next_dir)
+    solve_1_internal(next_pos, [pos | visited], obstacles, size, next_dir)
   end
 
   def solve_2({obstacles, start, size}) do
@@ -135,13 +134,42 @@ defmodule AdventOfCode.Day06 do
   def part1(args) do
     parse_input(args)
     |> solve_1()
+    |> MapSet.new()
     |> MapSet.size()
   end
 
   def part2(args) do
-    parse_input(args)
-    |> solve_2
-    |> IO.inspect(label: "new obstacles")
-    |> MapSet.size()
+    {obstacles, robot_start, max_size} =
+      inputs =
+      parse_input(args)
+
+    # attempt1 = solve_2(inputs) |> IO.inspect()
+
+    attempt2 =
+      solve_1(inputs)
+      |> Enum.reverse()
+      # drop robot start
+      |> tl()
+      |> Enum.uniq()
+      |> Enum.filter(fn spot ->
+        check_cycle(robot_start, MapSet.new(), MapSet.put(obstacles, spot), max_size, :up)
+      end)
+      # |> dbg()
+      |> length()
+
+    # |> MapSet.new()
+
+    # |> IO.inspect(label: "new obstacles")
+    # |> length()
+
+    # |> MapSet.new()
+
+    # diff = MapSet.difference(attempt1, attempt2) |> dbg() |> MapSet.size()
+
+    # |> length()
+
+    # |> MapSet.size()
+    # 
+    # greater than 1650, less than 1747
   end
 end
