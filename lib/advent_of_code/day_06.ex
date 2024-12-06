@@ -15,6 +15,7 @@ defmodule AdventOfCode.Day06 do
     robot_start =
       Enum.find(point_map, fn {_, symbol} -> symbol == "^" end)
       |> elem(0)
+      |> IO.inspect(label: "robot start")
 
     obstacles =
       Enum.filter(point_map, fn {_, symbol} -> symbol == "#" end)
@@ -22,6 +23,16 @@ defmodule AdventOfCode.Day06 do
       |> MapSet.new()
 
     {obstacles, robot_start, max_size}
+  end
+
+  def get_next_pos_and_dir(pos, dir, obstacles) do
+    potential_next_pos = get_next_pos(pos, dir)
+    potential_next_dir = get_next_dir(dir)
+
+    case MapSet.member?(obstacles, potential_next_pos) do
+      true -> {get_next_pos(pos, potential_next_dir), potential_next_dir}
+      false -> {potential_next_pos, dir}
+    end
   end
 
   def solve_1({obstacles, start, size}) do
@@ -33,14 +44,8 @@ defmodule AdventOfCode.Day06 do
       do: visited
 
   def solve_1_internal(pos, visited, obstacles, size, dir) do
-    potential_next_pos = get_next_pos(pos, dir)
-    potential_next_dir = get_next_dir(dir)
-
     {next_pos, next_dir} =
-      case MapSet.member?(obstacles, potential_next_pos) do
-        true -> {get_next_pos(pos, potential_next_dir), potential_next_dir}
-        false -> {potential_next_pos, dir}
-      end
+      get_next_pos_and_dir(pos, dir, obstacles)
 
     solve_1_internal(next_pos, MapSet.put(visited, pos), obstacles, size, next_dir)
   end
@@ -60,10 +65,11 @@ defmodule AdventOfCode.Day06 do
     next_is_obstacle = MapSet.member?(obstacles, potential_next_pos)
 
     obstacle_could_start_cycle =
-      MapSet.member?(visited, {get_next_pos(pos, potential_next_dir), potential_next_dir})
+      !next_is_obstacle and
+        check_cycle(pos, visited, MapSet.put(obstacles, potential_next_pos), size, dir)
 
     next_potential_obstacles =
-      case !next_is_obstacle && obstacle_could_start_cycle do
+      case obstacle_could_start_cycle do
         true -> MapSet.put(potential_obstacles, potential_next_pos)
         false -> potential_obstacles
       end
@@ -82,6 +88,30 @@ defmodule AdventOfCode.Day06 do
       size,
       next_dir
     )
+  end
+
+  def check_cycle({row, col}, _visited, _obstacles, size, _dir)
+      when row < 0 or row >= size or col < 0 or col >= size do
+    false
+  end
+
+  def check_cycle(pos, visited, obstacles, size, dir) do
+    {next_pos, next_dir} =
+      get_next_pos_and_dir(pos, dir, obstacles)
+
+    case MapSet.member?(visited, {next_pos, next_dir}) do
+      true ->
+        true
+
+      false ->
+        check_cycle(
+          next_pos,
+          MapSet.put(visited, {next_pos, next_dir}),
+          obstacles,
+          size,
+          next_dir
+        )
+    end
   end
 
   def get_next_pos({row, col}, dir) do
@@ -111,5 +141,7 @@ defmodule AdventOfCode.Day06 do
   def part2(args) do
     parse_input(args)
     |> solve_2
+    |> IO.inspect(label: "new obstacles")
+    |> MapSet.size()
   end
 end
