@@ -11,9 +11,9 @@ defmodule AdventOfCode.Day11Test do
   end
 
   test "part2" do
-    input = "0"
+    input = "125 17"
     result = part2(input)
 
-    assert result
+    assert result == 65_601_038_650_482
   end
 end
