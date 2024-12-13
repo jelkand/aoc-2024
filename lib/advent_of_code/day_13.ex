@@ -14,47 +14,48 @@ defmodule AdventOfCode.Day13 do
     |> List.to_tuple()
   end
 
-  # def solve_puzzles(puzzles)
-  #   Enum.map()
-  # end
-  # {{a_x, a_y}, {b_x, b_y}, {t_x, t_y}}
-  # 
+  def solve_puzzle({{a_x, a_y}, {b_x, b_y}, {t_x, t_y}}) do
+    raw_count =
+      (t_y / b_y - t_x / b_x) / (a_y / b_y - a_x / b_x)
 
-  def solve_puzzle({{a_x, a_y}, _, {t_x, t_y}}, count, solutions)
-      when a_x * count > t_x or a_y * count > t_y,
-      do: solutions
-
-  def solve_puzzle({{a_x, a_y}, {b_x, b_y}, {t_x, t_y}} = puzzle, count, solutions) do
-    mult_a_x = a_x * count
-    mult_a_y = a_y * count
-
-    remainder_x = t_x - mult_a_x
-    remainder_y = t_y - mult_a_y
+    rounded_count = round(raw_count)
 
     cond do
-      Integer.mod(remainder_x, b_x) == 0 and Integer.mod(remainder_y, b_y) == 0 and
-          div(remainder_x, b_x) == div(remainder_y, b_y) ->
-        solve_puzzle(puzzle, count + 1, [{count, div(remainder_x, b_x)} | solutions])
+      Integer.mod(t_x - a_x * rounded_count, b_x) == 0 and
+          Integer.mod(t_y - a_y * rounded_count, b_y) == 0 ->
+        b_count = div(t_x - a_x * rounded_count, b_x)
+
+        test_x = a_x * rounded_count + b_x * b_count
+        test_y = a_y * rounded_count + b_y * b_count
+
+        case {test_x, test_y} do
+          {^t_x, ^t_y} ->
+            a_score = 3 * rounded_count
+            b_count + a_score
+
+          _ ->
+            0
+        end
 
       true ->
-        solve_puzzle(puzzle, count + 1, solutions)
+        0
     end
   end
 
-  def score_solutions([]), do: 0
-
-  def score_solutions(list) do
-    Enum.map(list, fn {a, b} -> 3 * a + b end)
-    |> Enum.min()
+  def add_a_bajillion({a, b, {t_x, t_y}}) do
+    {a, b, {t_x + 10_000_000_000_000, t_y + 10_000_000_000_000}}
   end
 
   def part1(args) do
     parse_input(args)
-    |> Enum.map(&solve_puzzle(&1, 1, []))
-    |> Enum.map(&score_solutions/1)
+    |> Enum.map(&solve_puzzle/1)
     |> Enum.sum()
   end
 
-  def part2(_args) do
+  def part2(args) do
+    parse_input(args)
+    |> Enum.map(&add_a_bajillion/1)
+    |> Enum.map(&solve_puzzle/1)
+    |> Enum.sum()
   end
 end

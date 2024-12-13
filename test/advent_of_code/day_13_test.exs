@@ -29,6 +29,6 @@ defmodule AdventOfCode.Day13Test do
   test "part2" do
     result = part2(@input)
 
-    assert result
+    assert result == 875_318_608_908
   end
 end
