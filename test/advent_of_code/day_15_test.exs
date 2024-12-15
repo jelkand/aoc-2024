@@ -3,19 +3,6 @@ defmodule AdventOfCode.Day15Test do
 
   import AdventOfCode.Day15
 
-  @small_input """
-  ########
-  #..O.O.#
-  ##@.O..#
-  #...O..#
-  #.#.O..#
-  #...O..#
-  #......#
-  ########
-
-  <^^>>>vv<v>>v<<
-  """
-
   @big_input """
   ##########
   #..O..O.O#
@@ -39,8 +26,22 @@ defmodule AdventOfCode.Day15Test do
   ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
   v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
   """
+  @tag :skip
   test "part1" do
-    small_result = part1(@small_input)
+    small_input = """
+    ########
+    #..O.O.#
+    ##@.O..#
+    #...O..#
+    #.#.O..#
+    #...O..#
+    #......#
+    ########
+
+    <^^>>>vv<v>>v<<
+    """
+
+    small_result = part1(small_input)
 
     assert small_result == 2028
 
@@ -48,11 +49,24 @@ defmodule AdventOfCode.Day15Test do
     assert big_result == 10092
   end
 
-  @tag :skip
   test "part2" do
-    input = nil
-    result = part2(input)
+    small_input = """
+    #######
+    #...#.#
+    #.....#
+    #..OO@#
+    #..O..#
+    #.....#
+    #######
 
-    assert result
+    <vv<<^^<<^^
+    """
+
+    small_result = part2(small_input)
+
+    assert small_result == 618
+
+    big_result = part2(@big_input)
+    assert big_result == 9021
   end
 end
