@@ -20,6 +20,25 @@ defmodule AdventOfCode.Helpers do
     |> Enum.into(%{})
   end
 
+  def pretty_print_point_map(map) do
+    rows = Enum.map(map, &(elem(&1, 0) |> elem(0))) |> Enum.max()
+    cols = Enum.map(map, &(elem(&1, 0) |> elem(1))) |> Enum.max()
+
+    IO.puts("\n")
+
+    Enum.map(0..rows, fn row ->
+      out =
+        Enum.map(0..cols, fn col ->
+          Map.get(map, {row, col})
+        end)
+        |> Enum.join()
+
+      IO.puts(out)
+    end)
+
+    IO.puts("\n")
+  end
+
   def find_all_groups(to_check, acc) when to_check == %{}, do: acc
 
   def find_all_groups(point_map, acc) do
